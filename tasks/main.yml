@@ -14,7 +14,7 @@
 #   command: docker rm {{ name }} 
 
 - name: Start a data-only container
-  docker: image=ubuntu name={{ container.container_name }}_data command=/bin/bash detach=yes volumes={{ container.container_volumes }}
+  docker: image=ubuntu name={{ container.container_name }}_data command=/bin/bash detach=yes volumes="{{ container.container_volumes }}"
 
 - name: Start a container
   docker: image="{{ container.container_image }}" name="{{ container.container_name }}" command="{{ container.container_command }}" detach=yes ports="{{ container.container_ports }}" volumes_from="{{ container.container_name }}_data" publish_all_ports="{{ container.container_all_ports }}"
