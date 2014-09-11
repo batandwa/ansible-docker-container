@@ -7,7 +7,9 @@
 
 - name: Stop container
   # command: docker kill {{ container.container_name }}
-  docker: state=killed name={{ container.container_name }} image={{ container.container_image }}
+  # docker: state=killed name={{ container.container_name }} image={{ container.container_image }}
+  # shell: docker stop "{{ container.container_name }}" && docker rm "{{ container.container_name }}"
+  shell: docker stop {{ container.container_name }} && docker rm {{ container.container_name }}
   when: container_kill_existing == "Y" or container_kill_existing == "y"
 
 # - name: Destroy container
@@ -19,9 +21,9 @@
 - name: Start a container
   docker: image="{{ container.container_image }}" name="{{ container.container_name }}" command="{{ container.container_command }}" detach=yes ports="{{ container.container_ports }}" volumes_from="{{ container.container_name }}_data" publish_all_ports="{{ container.container_all_ports }}"
 
-# - name: New container IP
-#   debug: msg={{ item['NetworkSettings']['IPAddress'] }}
-#   with_items: docker_containers
+- name: New container IP
+  shell: echo {{ item['NetworkSettings']['IPAddress'] }}
+  with_items: docker_containers
 
 # - name: Create hosts file
 #   command: "echo {{ item['NetworkSettings']['IPAddress'] }} >> hosts"
