@@ -2,15 +2,12 @@ cwd_path: "{{ lookup('env', 'PWD') }}"
 
 container:
   container_name: test
-  container_create_sudo: yes
   container_image: phusion/baseimage
   container_command: /sbin/my_init --enable-insecure-key
   container_domain: erp.do.batandwa.me
   container_ports: 22
-  # container_volumes: "{{ cwd_path }}/data/home:/home"
-  # container_volumes: "{{ cwd_path }}/data/home:/home,{{ cwd_path }}/data/bin:/usr/local/bin"
   container_volumes: 
     - "{{ cwd_path }}/data/home:/home"
     - "{{ cwd_path }}/data/tmp:/tmp"
   container_all_ports: no
-  container_kill_existing: yes
+  container_kill_existing: no
