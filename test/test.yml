@@ -1,0 +1,7 @@
+---
+- hosts: local
+  remote_user: root
+  vars_files:
+    - variables.yml
+  roles:
+    - ../..
