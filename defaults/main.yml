@@ -9,3 +9,4 @@ container:
   container_ports: 80,22
   container_volumes: "/var/lib/mysql:mysql"
   container_all_ports: no
+  container_kill_existing: no
