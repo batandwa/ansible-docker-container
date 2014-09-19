@@ -6,12 +6,14 @@
   ignore_errors: yes
   register: command_result
 
+- name: Check if data container exists
+  shell: docker inspect {{ container.container_name }}
+  ignore_errors: yes
+  register: data_container_exists
+
 - name: Stop and remove existing container container
   shell: docker stop {{ container.container_name }} && docker rm {{ container.container_name }}
   when: container.container_kill_existing and command_result.rc == 0
 
-- name: Start a data-only container
-  docker: image=ubuntu name={{ container.container_name }}_data command=/bin/bash detach=yes volumes={{ container.container_volumes | join(',') }}
-
 - name: Start a container
-  docker: image={{ container.container_image }} name={{ container.container_name }} command="{{ container.container_command }}" detach=yes ports="{{ container.container_ports }}" volumes_from="{{ container.container_name }}_data" publish_all_ports="{{ container.container_all_ports }}"
+  shell: docker run -d -p {{ container.container_ports }} --volumes-from={{ container.container_name }}_data --name={{ container.container_name }} {{ container.container_image }} {{ container.container_command }}
