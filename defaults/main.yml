@@ -1,5 +1,5 @@
 ---
-# defaults file for batandwa.ansible-phusion-baseimage
+# defaults file for batandwa.ansible-docker-container
 
 container:
   container_image: ubuntu
