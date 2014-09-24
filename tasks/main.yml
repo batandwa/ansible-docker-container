@@ -15,5 +15,8 @@
   shell: docker stop {{ container.container_name }} && docker rm {{ container.container_name }}
   when: container.container_kill_existing and command_result.rc == 0
 
+- name: Start a data-only container
+  docker: image=ubuntu name={{ container.container_name }}_data command=/bin/bash detach=yes volumes={{ container.container_volumes | join(',') }}
+
 - name: Start a container
   shell: docker run -d {{ ' '.join(container.container_ports) }} --volumes-from={{ container.container_name }}_data {{ ' '.join(container.container_extra) }} --name={{ container.container_name }} {{ container.container_image }} {{ container.container_command }}
