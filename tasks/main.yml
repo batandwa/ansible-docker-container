@@ -20,3 +20,4 @@
 
 - name: Start a container
   shell: docker run -d {{ ' '.join(container.container_ports) }} --volumes-from={{ container.container_name }}_data {{ ' '.join(container.container_extra) }} --name={{ container.container_name }} {{ container.container_image }} {{ container.container_command }}
+  when: container.container_kill_existing or command_result.rc != 0
