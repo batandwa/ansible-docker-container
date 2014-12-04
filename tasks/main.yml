@@ -2,12 +2,12 @@
 # tasks file for batandwa.ansible-phusion-baseimage
 
 - name: Check if container exists
-  shell: docker inspect {{ container.container_name }}
+  shell: docker inspect {{ container.container_name }} || false
   ignore_errors: yes
   register: command_result
 
 - name: Check if data container exists
-  shell: docker inspect {{ container.container_name }}
+  shell: docker inspect {{ container.container_name }} || false
   ignore_errors: yes
   register: data_container_exists
 
