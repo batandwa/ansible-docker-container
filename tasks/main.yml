@@ -15,9 +15,21 @@
   shell: docker stop {{ container.container_name }} && docker rm {{ container.container_name }}
   when: container.container_kill_existing and command_result.rc == 0
 
-- name: Start a data-only container
+- name: Run a data-only container
   docker: image=ubuntu name={{ container.container_name }}_data command=/bin/bash detach=yes volumes={{ container.container_volumes | join(',') }}
 
-- name: Start a container
+- name: Get DNS interface IP
+  shell: "ifconfig {{ container.container_dns_interface }} | grep \"inet addr\" | awk -F: '{print $2}' | awk '{print $1}'"
+  register: dns_interface_ip
+  when: container.container_name is defined
+
+- name: Run the main container
   shell: docker run -d {{ ' '.join(container.container_ports) }} --volumes-from={{ container.container_name }}_data {{ ' '.join(container.container_extra) }} --name={{ container.container_name }} {{ container.container_image }} {{ container.container_command }}
-  when: container.container_kill_existing or command_result.rc != 0
+  when: dns_interface_ip is not defined and (container.container_kill_existing or command_result.rc != 0)
+
+- name: Run the main container with DNS
+  shell: docker run -d {{ ' '.join(container.container_ports) }} --volumes-from={{ container.container_name }}_data {{ ' '.join(container.container_extra) }} --dns={{ dns_interface_ip.stdout }} --name={{ container.container_name }} {{ container.container_image }} {{ container.container_command }}
+  when: dns_interface_ip is defined and (container.container_kill_existing or command_result.rc != 0)
+
+- name: Make sure the container is started
+  shell: docker start {{ container.container_name }}
