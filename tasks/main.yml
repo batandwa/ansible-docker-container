@@ -1,29 +1,41 @@
 ---
-# tasks file for batandwa.ansible-phusion-baseimage
+# tasks file for batandwa.docker-container
 
-# - shell: echo "{{ item }}"
-#   with_items: docker_containers
-#   register: echo
+- name: Stop and kill existing container
+  docker: 
+    state: killed 
+    name: "{{ container.container_name }}"
+    image: "{{ container.container_image }}"
+  when: container.container_kill_existing
 
-- name: Stop container
-  # command: docker kill {{ container_name }}
-  docker: state=killed name={{ container_name }} image={{ container_image }}
-  when: container_kill_existing == "Y" or container_kill_existing == "y"
+- name: Stop and kill existing data container
+  docker: 
+    state: killed 
+    name: "{{ container.container_name }}_data"
+    image: "{{ container.container_image }}"
+  when: container.container_kill_existing
 
-
-
-# - name: Destroy container
-#   command: docker rm {{ name }} 
-
-- name: Start a volume container
-  docker: image="ubuntu" name="{{ container_name }}_vol" command="/bin/bash" detach=yes volumes="{{ container_volumes }}"
+- name: Start a data-only container
+  docker: 
+    image: ubuntu
+    name: {{ container.container_name }}_data
+    command: /bin/bash
+    detach: yes
+    volumes: {{ container.container_volumes }}
 
 - name: Start a container
-  docker: image="{{ container_image }}" name="{{ container_name }}" command="{{ container_command }}" detach=yes ports="{{ container_ports }}" volumes_from="{{ container_name }}_vol" publish_all_ports="{{ container_all_ports }}"
+  docker: 
+    detach: yes 
+    image: "{{ container.container_image }}" 
+    name: "{{ container.container_name }}" 
+    command: "{{ container.container_command }}" 
+    # ports: "{{ container.container_ports }}" 
+    volumes_from: "{{ container.container_name }}_data" 
+    publish_all_ports: "{{ container.container_all_ports }}"
 
-- name: New container IP
-  debug: msg={{ item['NetworkSettings']['IPAddress'] }}
-  with_items: docker_containers
+# - name: New container IP
+#   debug: msg={{ item['NetworkSettings']['IPAddress'] }}
+#   with_items: docker_containers
 
 # - name: Create hosts file
 #   command: "echo {{ item['NetworkSettings']['IPAddress'] }} >> hosts"
