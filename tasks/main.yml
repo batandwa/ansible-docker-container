@@ -1,67 +1,35 @@
 ---
-# tasks file for batandwa.docker-container
+# tasks file for batandwa.ansible-phusion-baseimage
 
-- name: Stop and kill existing container
-  docker: 
-    state: killed 
-    name: "{{ container.container_name }}"
-    image: "{{ container.container_image }}"
-  when: container.container_kill_existing
+- name: Check if container exists
+  shell: docker inspect {{ container.container_name }} || false
+  ignore_errors: yes
+  register: command_result
 
-- name: Stop and kill existing data container
-  docker: 
-    state: killed 
-    name: "{{ container.container_name }}_data"
-    image: "{{ container.container_image }}"
-  when: container.container_kill_existing
+- name: Check if data container exists
+  shell: docker inspect {{ container.container_name }} || false
+  ignore_errors: yes
+  register: data_container_exists
 
-- name: Start a data-only container
-  docker: 
-    image: ubuntu
-    name: {{ container.container_name }}_data
-    command: /bin/bash
-    detach: yes
-    volumes: {{ container.container_volumes }}
+- name: Stop and remove existing container container
+  shell: docker stop {{ container.container_name }} && docker rm {{ container.container_name }}
+  when: container.container_kill_existing and command_result.rc == 0
 
-- name: Start a container
-  docker: 
-    detach: yes 
-    image: "{{ container.container_image }}" 
-    name: "{{ container.container_name }}" 
-    command: "{{ container.container_command }}" 
-    # ports: "{{ container.container_ports }}" 
-    volumes_from: "{{ container.container_name }}_data" 
-    publish_all_ports: "{{ container.container_all_ports }}"
+- name: Run a data-only container
+  docker: image=ubuntu name={{ container.container_name }}_data command=/bin/bash detach=yes volumes={{ container.container_volumes | join(',') }}
 
-# - name: New container IP
-#   debug: msg={{ item['NetworkSettings']['IPAddress'] }}
-#   with_items: docker_containers
+- name: Get DNS interface IP
+  shell: "ifconfig {{ container.container_dns_interface }} | grep \"inet addr\" | awk -F: '{print $2}' | awk '{print $1}'"
+  register: dns_interface_ip
+  when: container.container_name is defined
 
-# - name: Create hosts file
-#   command: "echo {{ item['NetworkSettings']['IPAddress'] }} >> hosts"
-#   with_items: docker_containers
+- name: Run the main container
+  shell: docker run -d {{ ' '.join(container.container_ports) }} --volumes-from={{ container.container_name }}_data {{ ' '.join(container.container_extra) }} --name={{ container.container_name }} {{ container.container_image }} {{ container.container_command }}
+  when: dns_interface_ip is not defined and (container.container_kill_existing or command_result.rc != 0)
 
-    # - name: Copy public SSH key
-    #   include: ssh_key.yml ip_address={{ item['NetworkSettings']['IPAddress'] }}
-    #   with_items: docker_containers
+- name: Run the main container with DNS
+  shell: docker run -d {{ ' '.join(container.container_ports) }} --volumes-from={{ container.container_name }}_data {{ ' '.join(container.container_extra) }} --dns={{ dns_interface_ip.stdout }} --name={{ container.container_name }} {{ container.container_image }} {{ container.container_command }}
+  when: dns_interface_ip is defined and (container.container_kill_existing or command_result.rc != 0)
 
-    # - name: Add the hosts
-    #   add_host: name=new_host ansible_ssh_host={{ item['NetworkSettings']['IPAddress'] }} ansible_ssh_user=root ansible_ssh_pass={{ password }}
-    #   with_items: docker_containers
-
-# - name: Adding keys
-#   hosts: new_host
-#   tasks:
-#     - name: Copy public SSH key
-#       authorized_key: user=root key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
-
-    # - name: Display IzP address and port mappings for containers
-    #   # debug: msg={{inventory_hostname}}:{{item['HostConfig']['PortBindings']['8080/tcp'][0]['HostPort']}}
-    #   # debug: msg={{inventory_hostname}}
-    #   debug: msg={{item['NetworkSettings']['IPAddress']}}
-    #   with_items: docker_containers
-
-    # - name: Display IP address and port mappings for containers
-    #   debug: msg={{inventory_hostname}}:{{item['HostConfig']['PortBindings']['8080/tcp'][0]['HostPort']}}
-    #   with_items: docker_containers
-
+- name: Make sure the container is started
+  shell: docker start {{ container.container_name }}

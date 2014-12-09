@@ -1,0 +1,18 @@
+cwd_path: "{{ lookup('env', 'PWD') }}"
+
+container:
+  container_name: test
+  container_image: phusion/baseimage
+  container_command: /sbin/my_init --enable-insecure-key
+  container_domain: erp.do.batandwa.me
+  container_ports: []
+  container_volumes: 
+    - "{{ cwd_path }}/data/home:/home"
+    - "{{ cwd_path }}/data/tmp:/tmp"
+  container_all_ports: no
+  container_kill_existing: yes
+  container_extra: 
+    - "-p 22"
+    - "-p 80"
+    - "-p 8080"
+    - "-p 8180"

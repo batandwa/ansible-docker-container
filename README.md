@@ -1,38 +1,49 @@
-Role Name
-========
+Ansible Docker Container
+========================
 
-A brief description of the role goes here.
+An Ansible roles that creates a docker container with a data volume. This role uses the docker module to create the container.
 
-Requirements
-------------
-
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+Create the following structure to hold the variables that the role needs:
 
-Dependencies
-------------
+    container:
+      # The docker image to be used.
+      container_image: ubuntu 
+      # The container will be given this name and the data volume will use the same name suffixed with *_data*.
+      container_name: sample_container 
+      # The command to be run when the container is started.
+      container_command: /bin/bash
+      # The domain to be used assigned to the container
+      container_domain: example.com
+      # The ports that will be exposed by the container
+      container_ports: 80,22
+      # The container volumes with their corresponding host destinations with the host destination specfied first.
+      container_volumes: 
+        - "{{ cwd_path }}/data/home:/home"
+        - "{{ cwd_path }}/data/tmp:/tmp"
+      # Whether the container should expose all it's open ports.
+      container_all_ports: no
+      # Whether the container should be destroyed and recreated whenever this roles is executed. This excludes the data container.
+      container_kill_existing: no
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
 
 Example Playbook
 -------------------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+Create a *variables.yml* file with the variables as above and add the following to your playbook.
 
-    - hosts: servers
+    - hosts: local
+      remote_user: root
+      vars_files:
+        - variables.yml
       roles:
-         - { role: username.rolename, x: 42 }
+        - ansible-docker-container
+
 
 License
 -------
 
-BSD
-
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+GPL v2
