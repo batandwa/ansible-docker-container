@@ -4,7 +4,7 @@
 container_image: ubuntu
 container_name: sample_container
 container_command: /bin/bash
-container_domain: erp.do.batandwa.me,
+container_domain: example.com
 container_ports: 80,22
 container_volumes: "/var/lib/mysql:mysql"
 container_all_ports: no
