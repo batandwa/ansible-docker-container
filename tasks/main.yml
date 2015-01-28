@@ -1,6 +1,21 @@
 ---
 - name: Start a volume container
-  docker: image="ubuntu" name="{{ container.container_name }}_vol" command="/bin/bash" detach=yes volumes="{{ container.container_volumes }}"
+  docker: 
+    image: "ubuntu" 
+    name: "{{ item.key }}_vol" 
+    command: "/bin/bash" 
+    detach: yes 
+    volumes: "{{ item.value.container_volumes }}"
+  with_dict: containerz
 
 - name: Start a container
-  docker: image="{{ container.container_image }}" name="{{ container.container_name }}" command="{{ container.container_command }}" detach=yes ports={{ container.container_ports }} volumes_from="{{ container.container_name }}_vol" publish_all_ports={{ container.container_all_ports }}
+  docker: 
+    image: "{{ item.value.container_image }}" 
+    name: "{{ item.key }}" 
+    command: "{{ item.value.container_command }}" 
+    hostname: "{{ item.value.container_domain }}" 
+    detach: yes 
+    ports: "{{ item.value.container_ports }}"
+    volumes_from: "{{ item.key }}_vol" 
+    publish_all_ports: "{{ item.value.container_all_ports }}"
+  with_dict: containerz
