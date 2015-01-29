@@ -6,7 +6,7 @@
     command: "/bin/bash" 
     detach: yes 
     volumes: "{{ item.value.container_volumes }}"
-  with_dict: containerz
+  with_dict: containers
 
 - name: Start a container
   docker: 
@@ -18,4 +18,5 @@
     ports: "{{ item.value.container_ports }}"
     volumes_from: "{{ item.key }}_vol" 
     publish_all_ports: "{{ item.value.container_all_ports }}"
-  with_dict: containerz
+    docker_url: "{{ item.value.container_docker_url }}"
+  with_dict: containers
