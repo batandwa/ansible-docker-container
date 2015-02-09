@@ -38,6 +38,12 @@ Create the following structure to hold the variables that the role needs:
         # Create a data-only container for this container.
         container_data_container: yes
 
+    # A list of containers that should be removed.
+    remove_cotainers:
+      - dev
+      - db1
+      - load_balancer
+
 Example Playbook
 -------------------------
 
