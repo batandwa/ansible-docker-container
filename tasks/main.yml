@@ -1,11 +1,12 @@
 ---
-- name: Start a volume container
+- name: Start a data volume container
   docker: 
     image: "ubuntu" 
-    name: "{{ item.key }}_vol" 
+    name: "{{ item.key }}_data" 
     command: "/bin/bash" 
     detach: yes 
     volumes: "{{ item.value.container_volumes }}"
+  when: item.value.container_data_container
   with_dict: containers
 
 - name: Start a container
@@ -15,8 +16,16 @@
     command: "{{ item.value.container_command }}" 
     hostname: "{{ item.value.container_domain }}" 
     detach: yes 
-    ports: "{{ item.value.container_ports }}"
-    volumes_from: "{{ item.key }}_vol" 
+    ports: "{{ item.value.container_ports | join(',')}}"
+    volumes_from: "{{ item.key }}_data" 
     publish_all_ports: "{{ item.value.container_all_ports }}"
     docker_url: "{{ item.value.container_docker_url }}"
   with_dict: containers
+
+
+- name: Removed containers on kill list
+  docker: 
+    image: "ubuntu" 
+    name: "{{ item }}" 
+    state: absent
+  with_items: remove_containers
